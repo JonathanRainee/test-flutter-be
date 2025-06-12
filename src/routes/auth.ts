@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { db, auth } from '../firebase'; 
 import { User } from '../entities/users';
+import axios from 'axios';
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
 const router = Router();
 
@@ -27,6 +29,7 @@ router.post('/signup', async (req: Request, res: Response, next: NextFunction): 
       email: email,
       createdAt: now,
       updatedAt: now,
+      imageUrl: ""
     };
 
     await db.collection('users').doc(uid).set(newUser);
@@ -35,6 +38,7 @@ router.post('/signup', async (req: Request, res: Response, next: NextFunction): 
       id: newUser.id,
       username: newUser.username,
       email: newUser.email,
+      imageUrl: newUser.imageUrl,
       createdAt: newUser.createdAt,
       updatedAt: newUser.updatedAt,
     };
@@ -64,11 +68,23 @@ router.post('/signin', async (req: Request, res: Response, next: NextFunction): 
   }
 
   try {
+
+     const response = await axios.post(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`,
+      {
+        email,
+        password,
+        returnSecureToken: true,
+      }
+    );
+
     const userRecord = await auth.getUserByEmail(email);
+    
     const uid = userRecord.uid;
     const emailUser = userRecord.email;
     const username = userRecord.displayName;
-
+    const imageUrl = userRecord.photoURL;
+    
 
     const customToken = await auth.createCustomToken(uid);
 
@@ -77,7 +93,8 @@ router.post('/signin', async (req: Request, res: Response, next: NextFunction): 
       customToken: customToken,
       uid: uid,
       email: emailUser,
-      username: username
+      username: username,
+      imageUrl: imageUrl
     });
 
   } catch (error: any) {

@@ -3,6 +3,7 @@ export interface User {
   username: string;
   email: string;
   password?: string; 
+  imageUrl?: string;
   createdAt: Date;
   updatedAt: Date;
 }

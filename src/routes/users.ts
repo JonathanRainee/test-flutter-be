@@ -67,7 +67,6 @@ router.get('/getId/:id', async (req: Request, res: Response): Promise<void> => {
 router.put('/update', async (req: Request, res: Response): Promise<void> => {
     const body = req.body;
     try {
-      console.log(body);
       const updatedRecord= await admin.auth().updateUser (body.uid, {
         email: body.email,
         displayName: body.username,
@@ -83,8 +82,22 @@ router.put('/update', async (req: Request, res: Response): Promise<void> => {
       };
 
 
-      console.log(user);
       res.status(200).json({ user });
+    } catch (error: any) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ message: 'Failed to update user.', error: error.message });
+    }
+});
+
+router.put('/updateProfile', async (req: Request, res: Response): Promise<void> => {
+    const body = req.body;
+
+    try {
+      const updatedRecord= await admin.auth().updateUser (body.uid, {
+        photoURL: body.imageUrl
+      });
+
+      res.status(200).json({ "message": "profile updated" });
     } catch (error: any) {
         console.error('Error updating user:', error);
         res.status(500).json({ message: 'Failed to update user.', error: error.message });

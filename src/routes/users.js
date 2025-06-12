@@ -74,7 +74,6 @@ router.get('/getId/:id', (req, res) => __awaiter(void 0, void 0, void 0, functio
 router.put('/update', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const body = req.body;
     try {
-        console.log(body);
         const updatedRecord = yield firebase_1.admin.auth().updateUser(body.uid, {
             email: body.email,
             displayName: body.username,
@@ -87,8 +86,20 @@ router.put('/update', (req, res) => __awaiter(void 0, void 0, void 0, function* 
             createdAt: updatedRecord.metadata.creationTime,
             updatedAt: new Date(),
         };
-        console.log(user);
         res.status(200).json({ user });
+    }
+    catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ message: 'Failed to update user.', error: error.message });
+    }
+}));
+router.put('/updateProfile', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const body = req.body;
+    try {
+        const updatedRecord = yield firebase_1.admin.auth().updateUser(body.uid, {
+            photoURL: body.imageUrl
+        });
+        res.status(200).json({ "message": "profile updated" });
     }
     catch (error) {
         console.error('Error updating user:', error);

@@ -8,9 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const firebase_1 = require("../firebase");
+const axios_1 = __importDefault(require("axios"));
 const router = (0, express_1.Router)();
 router.post('/signup', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password, username } = req.body;
@@ -31,12 +35,14 @@ router.post('/signup', (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             email: email,
             createdAt: now,
             updatedAt: now,
+            imageUrl: ""
         };
         yield firebase_1.db.collection('users').doc(uid).set(newUser);
         const userResponse = {
             id: newUser.id,
             username: newUser.username,
             email: newUser.email,
+            imageUrl: newUser.imageUrl,
             createdAt: newUser.createdAt,
             updatedAt: newUser.updatedAt,
         };
@@ -62,17 +68,24 @@ router.post('/signin', (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         res.status(400).json({ message: 'Email and password are required.' });
     }
     try {
+        const response = yield axios_1.default.post(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`, {
+            email,
+            password,
+            returnSecureToken: true,
+        });
         const userRecord = yield firebase_1.auth.getUserByEmail(email);
         const uid = userRecord.uid;
         const emailUser = userRecord.email;
         const username = userRecord.displayName;
+        const imageUrl = userRecord.photoURL;
         const customToken = yield firebase_1.auth.createCustomToken(uid);
         res.status(200).json({
             message: 'Custom token generated successfully.',
             customToken: customToken,
             uid: uid,
             email: emailUser,
-            username: username
+            username: username,
+            imageUrl: imageUrl
         });
     }
     catch (error) {
